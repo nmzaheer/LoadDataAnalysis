@@ -1,40 +1,111 @@
+"""
+Get Region, Section, Distribution Code
+__________________________________________
+
+This script gathers data for determining the Service Number of a consumer.
+It saves the Region, Section, Distribution code in a text file in an ordered
+fashion
+
+"""
 import urllib2
 import re
 
 
-url = "http://tneb.tnebnet.org/newlt/consno.php"
+base_url = "http://tneb.tnebnet.org/newlt/consno.php"
 
-def pat_match(url, pattern):
+
+def match_pattern(url, pattern):
+    """Matches the pattern at the URL.
+
+    Returns a list of strings which mathces the given regex pattern in the
+    response of the URL
+
+    Args:
+        url: A string containing the URL
+        pattern: Regular Expression pattern
+
+    Returns:
+        A list of strings that matches the given regex pattern. For example:
+
+        ['128,'564,'036','025','487']
+
+    """
     response = urllib2.urlopen(url)
     html = response.read()
     match = re.findall(pattern, html)
     return match
 
-def extract_sec_code(reg):
-    target = url + '?code=' + str(reg)
+
+def get_section_code(region_num):
+    """Gets a list of Section codes in the Region.
+
+    Args:
+        region_num: Region code where the Section belongs
+
+    Returns:
+        A list of strings representing the Section code under the given Region
+    """
+    target_url = base_url + '?code=' + str(region_num)
     pattern = r'<option value=\S(\d{2,}\w*)\S'
-    return pat_match(target, pattern)
+    return match_pattern(target_url, pattern)
 
-def extract_dist_code(reg, sec):
-    target = url + '?code=' + str(reg) + '&scode=' + sec
+
+def get_distribution_code(region_num, section_num):
+    """Gets a list of Distribution codes in the given Section.
+
+    Args:
+        region_num: Region code where the Section belongs
+        section_num: Section code where the Distribution codes need to be
+                     obtained
+
+    Returns:
+        A list of strings of Distribution code under the Section. For example:
+
+        ['501CHNG', '307PORU', '568MNGR', '317TMBM']
+    """
+    target_url = (base_url + '?code=' +
+                  str(region_num) + '&scode=' + section_num)
     pattern = r'<option value=\S(\d{3})[^\w]'
-    return pat_match(target, pattern)
+    return match_pattern(target_url, pattern)
 
-def extract_servcode():
-    f = open('servcode.txt','w')
-    dist_num = 0
-    for reg_no in range(1,10):
-        f.write(str(reg_no)+'\n')
-        sec_list = extract_sec_code(reg_no)
-        for section in sec_list:
-            dist_list = extract_dist_code(reg_no, section)
-            f.write('\t' + section[:3]+'\n')
-            for distribution in dist_list:
-                f.write('\t\t' + distribution + '\n')
-            dist_num +=len(dist_list)
-    print "Done"
-    print dist_num
+
+def get_service_num_data():
+    """Gets data required for forming a Service Number.
+
+    Args:
+        None
+
+    Returns:
+        None
+
+    Output:
+        The Region, Section, Distribution codes are written to a text file
+        in the following format:
+
+        Region_Code
+            Section_Code
+                Distribution_Code
+                .....
+                .....
+            Section_Code
+                Distribution_Code
+                .....
+        Region_Code
+            .............
+            ............
+    """
+    with open('code.txt', 'w') as f:
+        total_regions = 1
+        for region_num in range(1, total_regions + 1):
+            f.write(str(region_num)+'\n')
+            section_list = get_section_code(region_num)
+            for section in section_list:
+                distribution_list = get_distribution_code(region_num, section)
+                f.write('\t' + section[:3]+'\n')
+                for distribution in distribution_list:
+                    f.write('\t\t' + distribution + '\n')
+    f.close()
 
 
 if __name__ == '__main__':
-    extract_servcode()
+    get_service_num_data()
