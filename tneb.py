@@ -7,9 +7,10 @@ import re
 def main():
     url = 'http://tneb.tnebnet.org/newlt/consumerwise_gmc_report.php'
     cons_db = {}
-    for num in range(255,256):
-        val = 'TANGEDCO||424||001||' + str(num)
-        data = {'encserno': base64.b64encode(val), 'rsno': base64.b64encode('8')}
+    f=open('shenoy.txt','a')
+    for num in range(166,450):
+        val = 'TANGEDCO||171||065||' + str(num)
+        data = {'encserno': base64.b64encode(val), 'rsno': base64.b64encode('9')}
         params = urllib.urlencode(data)
         response = urllib2.urlopen(url, params)
         html = response.read()
@@ -29,21 +30,14 @@ def main():
             elif re.search(r'Collection Details', html):# and re.search(r'LA1A', html) :
                 html = html[html.find('Collection')+100:]
                 html = html[:html.find('/table')]
-                entry_match = re.findall(r'size=2>[&a-z;]*([\d/.]*)', html)
-                print entry_match
+                entry_match = re.findall(r'size=2>[&a-z;]*([\d/]*)', html)
                 num_entry_match = re.findall(r'<tr', html) 
                 cons_unit = [int(entry_match[i*16 +3]) for i in range(len(num_entry_match)-1)]
-                cons_db[cons_id]=cons_unit
-                #avg = sum(cons_unit)/len(cons_unit)
-    f = open('val_stats.txt', 'w')
-    for id,readings in cons_db.items():
-        f.write(id + ' ')
-        for reading in readings:
-            f.write(str(reading) + ' ')
-        f.write('\n')
-
-    
-        
+                f.write(cons_id+' ')
+                for reading in cons_unit:
+                    f.write(str(reading)+' ')
+                f.write('\n')
+                
 
 if __name__ == '__main__':
     main()
