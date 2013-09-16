@@ -98,10 +98,10 @@ def get_service_num_data():
         total_regions = 1
         for region_num in range(1, total_regions + 1):
             f.write(str(region_num)+'\n')
-            section_list = get_section_code(region_num)
+            section_list,section_name = get_section_code(region_num)
             for section in section_list:
                 distribution_list = get_distribution_code(region_num, section)
-                f.write('\t' + section[:3]+'\n')
+                f.write('\t' + section[:3]'\n')
                 for distribution in distribution_list:
                     f.write('\t\t' + distribution + '\n')
     f.close()
